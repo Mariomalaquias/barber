@@ -8,9 +8,17 @@ import { Badge } from "./_components/ui/badge";
 import { Avatar, AvatarImage } from "./_components/ui/avatar";
 import { db } from "./_lib/prisma";
 import BarbershopItem from "./_components/barbershop-item";
+import { quickSearchOpitions } from "./_constants/search";
+import BookingItem from "./_components/booking-item";
 
 const Home = async () => {
   const barbershops = await db.barbershop.findMany({});
+
+  const poluparBarbershops = await db.barbershop.findMany({
+    orderBy: {
+      name: "desc",
+    },
+  });
 
   return (
     <div>
@@ -25,6 +33,20 @@ const Home = async () => {
             <SearchIcon />
           </Button>
         </div>
+        <div className="flex gap-3 mt-3">
+          {quickSearchOpitions.map((item) => (
+            <Button className="gap-2" variant="secondary" key={item.title}>
+              <Image
+                className=""
+                src={item.imageUrl}
+                width={16}
+                height={16}
+                alt={item.title}
+              />
+              {item.title}
+            </Button>
+          ))}
+        </div>
 
         <div className="relative h-[150px] w-full mt-6">
           <Image
@@ -34,33 +56,25 @@ const Home = async () => {
             className="rounded-xs object-cover"
           />
         </div>
-        <h3>Agendamento</h3>
-        <Card className="mt-6 p-0">
-          <CardContent className="flex justify-between p-0">
-            <div className="flex flex-col gap-2 py-5 pl-5">
-              <Badge className="w-fit">Confirmado</Badge>
-              <h3>Corte de cabelo</h3>
-              <div className="flex items-center gap-2">
-                <Avatar className="h-6 w-6">
-                  <AvatarImage src="./Banner.png" />
-                </Avatar>
-                <p>Barbearia </p>
-              </div>
-            </div>
-            <div className="flex flex-col items-center justify-center px-5 border-l-2">
-              <p className="text-sm">Agosto</p>
-              <p className="text-2xl">05</p>
-              <p className="text-sm">20:00</p>
-            </div>
-          </CardContent>
-        </Card>
+        <BookingItem />
         <h2>Recomendado</h2>
         <div className="flex w-full gap-4">
           {barbershops.map((barbershop) => (
             <BarbershopItem key={barbershop.id} barbershop={barbershop} />
           ))}
         </div>
+        <h2>Populares</h2>
+        <div className="flex w-full gap-4">
+          {poluparBarbershops.map((barbershop) => (
+            <BarbershopItem key={barbershop.id} barbershop={barbershop} />
+          ))}
+        </div>
       </div>
+      <Card>
+        <CardContent>
+          <p>2025 todos os direitos reservados</p>
+        </CardContent>
+      </Card>
     </div>
   );
 };

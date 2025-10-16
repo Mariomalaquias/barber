@@ -70,11 +70,6 @@ const Home = async () => {
           ))}
         </div>
       </div>
-      <Card>
-        <CardContent>
-          <p>2025 todos os direitos reservados</p>
-        </CardContent>
-      </Card>
     </div>
   );
 };

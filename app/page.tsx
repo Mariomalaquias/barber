@@ -3,13 +3,11 @@ import Header from "./_components/header";
 import { Button } from "./_components/ui/button";
 import { Input } from "./_components/ui/input";
 import Image from "next/image";
-import { Card, CardContent } from "./_components/ui/card";
-import { Badge } from "./_components/ui/badge";
-import { Avatar, AvatarImage } from "./_components/ui/avatar";
 import { db } from "./_lib/prisma";
 import BarbershopItem from "./_components/barbershop-item";
 import { quickSearchOpitions } from "./_constants/search";
 import BookingItem from "./_components/booking-item";
+import Search from "./_components/search";
 
 const Home = async () => {
   const barbershops = await db.barbershop.findMany({});
@@ -27,12 +25,10 @@ const Home = async () => {
         <h2 className="text-xl font-bold">Ola, Mario</h2>
         <p>Sexta, 2 de Fevereiro</p>
 
-        <div className="gap-2 flex items-center mt-6">
-          <Input type="text" placeholder="pesquisar" />
-          <Button>
-            <SearchIcon />
-          </Button>
+        <div className="mt-6">
+          <Search />
         </div>
+
         <div className="flex gap-3 mt-3">
           {quickSearchOpitions.map((item) => (
             <Button className="gap-2" variant="secondary" key={item.title}>

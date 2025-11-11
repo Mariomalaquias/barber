@@ -7,20 +7,12 @@ import { quickSearchOpitions } from "../_constants/search";
 import { Avatar, AvatarImage } from "./ui/avatar";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
 import { signIn, signOut, useSession } from "next-auth/react";
 import SignInDialog from "./sign-in-dialog";
 
 const SidebarSheet = () => {
   const { data } = useSession();
-  const handleLoginWithGoogleClick = () => signIn("google");
   const handleLogOutClick = () => signOut();
 
   return (
@@ -91,16 +83,18 @@ const SidebarSheet = () => {
         ))}
       </div>
 
-      <div className="flex flex-col gap-3 p-5 border-b border-solid py-3">
-        <Button
-          className="justify-start gap-2"
-          variant="ghost"
-          onClick={handleLogOutClick}
-        >
-          <LogOutIcon size={18} />
-          Sair da Conta
-        </Button>
-      </div>
+      {data?.user && (
+        <div className="flex flex-col gap-3 p-5 border-b border-solid py-3">
+          <Button
+            className="justify-start gap-2"
+            variant="ghost"
+            onClick={handleLogOutClick}
+          >
+            <LogOutIcon size={18} />
+            Sair da Conta
+          </Button>
+        </div>
+      )}
     </SheetContent>
   );
 };

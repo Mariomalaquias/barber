@@ -1,3 +1,5 @@
+"use client";
+
 import { format, isFuture } from "date-fns";
 import { Prisma } from "../generated/prisma";
 import { Avatar, AvatarImage } from "./ui/avatar";
@@ -6,13 +8,29 @@ import { Card, CardContent } from "./ui/card";
 import { ptBR } from "date-fns/locale";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "./ui/sheet";
 import Image from "next/image";
 import PhoneItem from "./phone-item";
+import { Button } from "./ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "./ui/alert-dialog";
+import { deleteBooking } from "../_actions/delete-booking";
+import { useState } from "react";
 
 interface BookingItemProps {
   booking: Prisma.BookingGetPayload<{
@@ -28,12 +46,28 @@ interface BookingItemProps {
 }
 
 const BookingItem = ({ booking }: BookingItemProps) => {
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
   const {
     service: { barbershop },
   } = booking;
   const isConfirmed = isFuture(booking.date);
+  const handleCancelBooking = async () => {
+    try {
+      await deleteBooking(booking.id);
+      setIsSheetOpen(false);
+      toast.sucess("Reserva cancelada com sucesso!");
+    } catch (error) {
+      console.error(error);
+      toast.error("erro ao cancelar reserva. Tente novamente.");
+    }
+  };
+
+  const handleSheetOpenChange = (isOpen: boolean) => {
+    setIsSheetOpen(isOpen);
+  };
   return (
-    <Sheet>
+    <Sheet open={isSheetOpen} onOpenChange={handleSheetOpenChange}>
       <SheetTrigger className="w-full">
         <Card className="min-w-[90%]">
           <CardContent className="flex justify-between p-0">
@@ -69,7 +103,7 @@ const BookingItem = ({ booking }: BookingItemProps) => {
       </SheetTrigger>
       <SheetContent className="w-[90%]">
         <SheetHeader>
-          <SheetTitle>Informações de Reserva</SheetTitle>
+          <SheetTitle className="text-left">Informações de Reserva</SheetTitle>
         </SheetHeader>
         <div className="relative h-[180px] w-full flex items-end">
           <Image
@@ -90,52 +124,91 @@ const BookingItem = ({ booking }: BookingItemProps) => {
             </CardContent>
           </Card>
         </div>
-        <Badge
-          className="w-fit"
-          variant={isConfirmed ? "default" : "destructive"}
-        >
-          {isConfirmed ? "Confirmado" : "Finalizado"}
-        </Badge>
-        <Card>
-          <CardContent className="space-y-3 p-3">
-            <div className="flex items-center justify-between">
-              <h2 className="font-bold">{booking.service.name}</h2>
-              <p className="text-sm font-bold">
-                {Intl.NumberFormat("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                }).format(Number(booking.service.price))}
-              </p>
-            </div>
+        <div>
+          <Badge
+            className="w-fit"
+            variant={isConfirmed ? "default" : "destructive"}
+          >
+            {isConfirmed ? "Confirmado" : "Finalizado"}
+          </Badge>
+          <Card>
+            <CardContent className="space-y-3 p-3">
+              <div className="flex items-center justify-between">
+                <h2 className="font-bold">{booking.service.name}</h2>
+                <p className="text-sm font-bold">
+                  {Intl.NumberFormat("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  }).format(Number(booking.service.price))}
+                </p>
+              </div>
 
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm text-gray-400">Data</h2>
-              <p className="text-sm">
-                {format(booking.date, "d 'de' MMMM", {
-                  locale: ptBR,
-                })}
-              </p>
-            </div>
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm text-gray-400">Data</h2>
+                <p className="text-sm">
+                  {format(booking.date, "d 'de' MMMM", {
+                    locale: ptBR,
+                  })}
+                </p>
+              </div>
 
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm text-gray-400">Horario</h2>
-              <p className="text-sm">
-                {format(booking.date, "HH:mm", {
-                  locale: ptBR,
-                })}
-              </p>
-            </div>
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm text-gray-400">Horario</h2>
+                <p className="text-sm">
+                  {format(booking.date, "HH:mm", {
+                    locale: ptBR,
+                  })}
+                </p>
+              </div>
 
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm text-gray-400">Barbearia</h2>
-              <p className="text-sm">{barbershop.name}</p>
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm text-gray-400">Barbearia</h2>
+                <p className="text-sm">{barbershop.name}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <div className="space-y-3 mx-3">
+            {barbershop.phones.map((phone, index) => (
+              <PhoneItem key={index} phone={phone} />
+            ))}
+          </div>
+          <SheetFooter className="mt-6">
+            <div className="flex items-center gap-3 w-max">
+              <SheetClose asChild>
+                <Button className="w-full" variant={"outline"}>
+                  Voltar
+                </Button>
+              </SheetClose>
+              {isConfirmed && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button className="w-full" variant={"destructive"}>
+                      Cancelar Reserva
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="w-[80%]">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        você quer cancelar sua reserva
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta ação não pode ser desfeita. Sua reserva será
+                        deletada permanentemente.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Voltar</AlertDialogCancel>
+                      <AlertDialogCancel>
+                        <AlertDialogAction onClick={handleCancelBooking}>
+                          Confirmar
+                        </AlertDialogAction>
+                      </AlertDialogCancel>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
             </div>
-          </CardContent>
-        </Card>
-        <div className="space-y-3 mx-3">
-          {barbershop.phones.map((phone, index) => (
-            <PhoneItem key={index} phone={phone} />
-          ))}
+          </SheetFooter>
         </div>
       </SheetContent>
     </Sheet>
